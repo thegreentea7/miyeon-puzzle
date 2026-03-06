@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Пятнашки Миён ♡</title>
+  <style>
+    :root{
+      --bg0:#fff7fb;
+      --bg1:#ffeaf3;
+      --ink:#3a1f2a;
+      --muted:#8a5a6a;
+
+      --pink:#ff5fa2;
+      --stroke: rgba(255,95,162,.22);
+      --stroke2: rgba(255,95,162,.34);
+      --shadow: 0 14px 40px rgba(255,95,162,.16);
+
+      --cardR:14px;
+      --btnR:12px;
+      --gap:10px;
+      --boardW:520px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      background:
+        radial-gradient(900px 700px at 18% 8%, rgba(255,95,162,.10), transparent 60%),
+        radial-gradient(900px 700px at 85% 10%, rgba(255,255,255,.65), transparent 58%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      color:var(--ink);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:22px;
+    }
+
+    .app{
+      width:min(92vw, 1120px);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid var(--stroke2);
+      border-radius: var(--cardR);
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+
+    h1{
+      margin:0 0 6px 0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      margin:0 0 12px 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .topRow{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:nowrap;
+    }
+    .pills{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .topRow > div:first-child{
+      flex:1 1 auto;
+      min-width:260px;
+    }
+    .pill{
+      background:#fff;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:13px;
+      color:var(--muted);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .pill strong{ color:var(--ink); font-weight:700; }
+
+    .controls{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    button, select{
+      appearance:none;
+      font: inherit;
+      border-radius: var(--btnR);
+      border:1px solid var(--stroke2);
+      background:#fff;
+      color:var(--ink);
+      padding:10px 12px;
+      font-size:14px;
+      cursor:pointer;
+      transition: transform .05s ease, border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    button:hover, select:hover{
+      border-color: rgba(255,95,162,.70);
+      box-shadow: 0 10px 24px rgba(255,95,162,.14);
+    }
+    button:active{ transform: translateY(1px); }
+    button.primary{
+      background: linear-gradient(180deg,#ff8fbd,#ff5fa2);
+      color:#fff;
+      border-color: rgba(255,95,162,.75);
+      box-shadow: 0 10px 24px rgba(255,95,162,.18);
+    }
+    button.ghost{
+      background:#ffe3ef;
+      border-color: rgba(255,95,162,.40);
+    }
+
+    .mainRow{
+      display:flex;
+      flex-direction:row;
+      align-items:flex-start;
+      gap:14px;
+    }
+
+    .leftCol{
+      flex:0 0 auto;
+      width: var(--boardW);
+      min-width: var(--boardW);
+    }
+
+    .rightCol{
+      flex:0 0 360px;
+      width:360px;
+    }
+
+    @media (max-width: 980px){
+      .topRow{ flex-wrap:wrap; }
+
+      :root{ --boardW: min(92vw, 520px); }
+      .mainRow{ flex-direction:column; }
+      .leftCol{ width:100%; min-width:0; }
+      .rightCol{ width:100%; }
+    }
+
+    .boardWrap{ width:100%; }
+    .boardFrame{
+      background:#fff;
+      border:1px solid var(--stroke2);
+      border-radius: var(--cardR);
+      box-shadow: var(--shadow);
+      padding:12px;
+    }
+
+    .board{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      display:grid;
+      gap: var(--gap);
+      padding: var(--gap);
+      border-radius: 16px;
+      background: #fff;
+      border:1px solid rgba(255,95,162,.14);
+      position:relative;
+    }
+
+    .tile{
+      position:relative;
+      border-radius: 16px;
+      overflow:hidden;
+      border:1px solid rgba(255,95,162,.14);
+      background: rgba(255,95,162,.06);
+      cursor:pointer;
+      user-select:none;
+      background-repeat:no-repeat;
+    }
+    .tile.empty{
+      background: transparent;
+      border:1px dashed rgba(255,95,162,.18);
+      cursor:default;
+    }
+    .tile.empty::after{
+      content:"♡";
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:32px;
+      color: rgba(255,95,162,.65);
+      font-weight:700;
+      pointer-events:none;
+    }
+
+    .tile .num{
+      position:absolute;
+      left:10px;
+      bottom:8px;
+      font-size:12px;
+      color:#fff;
+      background: rgba(255,95,162,.78);
+      border:1px solid rgba(255,95,162,.35);
+      padding:4px 8px;
+      border-radius:999px;
+      font-weight:700;
+      letter-spacing:.2px;
+      display:none;
+    }
+    .showNums .tile .num{ display:block; }
+
+    .hint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .levelsCard h3{
+      margin:2px 0 8px 0;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+
+    .gallery{
+      width:100%;
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:9px;
+    }
+
+    .thumb{
+      aspect-ratio:1/1;
+      border-radius:14px;
+      border:1px solid var(--stroke2);
+      background:#fff7fb;
+      box-shadow: 0 10px 24px rgba(255,95,162,.10);
+      position:relative;
+      overflow:hidden;
+      cursor:pointer;
+      padding:0;
+    }
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .thumb::before{
+      content:"";
+      position:absolute;
+      inset:7px;
+      border-radius:12px;
+      border:1px solid rgba(255,95,162,.14);
+      pointer-events:none;
+      z-index:2;
+    }
+    .thumb span{
+      position:absolute;
+      left:10px;
+      bottom:8px;
+      font-size:12px;
+      color:#fff;
+      z-index:3;
+      background: rgba(255,95,162,.78);
+      border:1px solid rgba(255,95,162,.35);
+      padding:4px 8px;
+      border-radius:999px;
+      font-weight:700;
+    }
+    .thumb.active{ outline:2px solid rgba(255,95,162,.80); outline-offset:3px; }
+
+    .thumb.locked img{
+      filter: blur(10px);
+      transform: scale(1.06);
+    }
+    .thumb.locked::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: rgba(255,95,162,.18);
+      z-index:3;
+    }
+    .thumb.locked::after{
+      content:"🔒";
+      position:absolute;
+      top:6px;
+      right:6px;
+      width:22px;
+      height:22px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:13px;
+      background:#fff;
+      border:1px solid rgba(255,95,162,.35);
+      border-radius:50%;
+      box-shadow:0 4px 10px rgba(0,0,0,.12);
+      z-index:4;
+    }
+    .thumb.locked span{
+      background: rgba(138,90,106,.78);
+      border-color: rgba(138,90,106,.35);
+    }
+
+    /* solved view */
+    .board.solved{
+      padding:0;
+      gap:0;
+      border:0;
+      background:transparent;
+    }
+    .solvedImg{
+      width:100%;
+      height:100%;
+      display:block;
+      border-radius:16px;
+      box-shadow: 0 10px 30px rgba(255,95,162,.18);
+    }
+
+    .winMsg{
+      position:absolute;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:18px;
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(6px);
+      border-radius:16px;
+    }
+    .winTitle{
+      font-size:22px;
+      font-weight:800;
+      color: var(--pink);
+      letter-spacing:.2px;
+    }
+    .winText{
+      margin-top:8px;
+      font-size:15px;
+      color: var(--ink);
+      font-weight:700;
+    }
+    .winText2{
+      margin-top:6px;
+      font-size:13px;
+      color: var(--muted);
+      font-weight:600;
+    }
+    .bestLine{
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .nextBtn{
+      margin-top:14px;
+      background: linear-gradient(180deg,#ff8fbd,#ff5fa2);
+      color:#fff;
+      border:0;
+      border-radius:12px;
+      padding:10px 14px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow: 0 8px 20px rgba(255,95,162,.25);
+    }
+    .retryBtn{
+      margin-top:10px;
+      background:#ffe3ef;
+      color:var(--ink);
+      border:1px solid rgba(255,95,162,.40);
+      border-radius:12px;
+      padding:10px 14px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    #debug{
+      margin-top:14px;
+      background:#fff;
+      border:1px solid rgba(255,95,162,.28);
+      border-radius: 12px;
+      padding:10px 12px;
+      color:#a11a3a;
+      display:none;
+      white-space:pre-wrap;
+      box-shadow: 0 10px 24px rgba(255,95,162,.10);
+      font-size:12px;
+      line-height:1.35;
+    }
+  
+
+/* align top header width with the two-column content width */
+.wrap{width:fit-content;max-width:calc(100vw - 40px);margin:0 auto;padding:22px;box-sizing:border-box;}
+.topCard{width:100%;box-sizing:border-box;}
+.mainRow{width:100%;box-sizing:border-box;}
+
+
+/* align header width with content */
+.app{width:fit-content;}
+.card{width:100%;}
+
+    .tile{
+      transition: transform .14s ease, box-shadow .14s ease;
+    }
+    .tile:not(.empty):hover{
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 10px 18px rgba(255,95,162,.16);
+      z-index:2;
+    }
+
+    .tile.empty::after{
+      animation: heartPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes heartPulse{
+      0%,100%{ transform: scale(1); opacity:.72; }
+      50%{ transform: scale(1.12); opacity:1; }
+    }
+
+    .thumb{
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+    .thumb:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(255,95,162,.16);
+    }
+    .thumb.unlocking img{
+      animation: unlockBlurAway .55s ease forwards;
+    }
+    .thumb.unlocking::after{
+      animation: lockPopAway .55s ease forwards;
+      transform-origin:center;
+    }
+    .thumb.unlocking.locked::before{
+      animation: overlayFadeAway .55s ease forwards;
+    }
+    .thumb.newlyUnlocked{
+      animation: unlockedGlow 1s ease;
+    }
+
+    @keyframes unlockBlurAway{
+      0%{ filter: blur(10px); transform: scale(1.06); }
+      60%{ filter: blur(4px); transform: scale(1.03); }
+      100%{ filter: blur(0); transform: scale(1); }
+    }
+    @keyframes lockPopAway{
+      0%{ opacity:1; transform: scale(1); }
+      35%{ opacity:1; transform: scale(1.22); }
+      100%{ opacity:0; transform: scale(.7); }
+    }
+    @keyframes overlayFadeAway{
+      from{ opacity:1; }
+      to{ opacity:0; }
+    }
+    @keyframes unlockedGlow{
+      0%{ box-shadow: 0 0 0 rgba(255,95,162,0); }
+      35%{ box-shadow: 0 0 0 6px rgba(255,95,162,.18); }
+      100%{ box-shadow: 0 10px 24px rgba(255,95,162,.10); }
+    }
+
+    .boardFrame.dailyMode{
+      border-color: rgba(231,190,73,.50);
+      box-shadow: 0 0 0 1px rgba(231,190,73,.18), 0 14px 40px rgba(231,190,73,.18);
+    }
+    .board.dailyMode{
+      border-color: rgba(231,190,73,.28);
+      background: linear-gradient(180deg, rgba(255,248,225,.92), #fff);
+    }
+    .rightCol.dailyMode{
+      border-color: rgba(231,190,73,.50);
+      box-shadow: 0 0 0 1px rgba(231,190,73,.18), 0 14px 40px rgba(231,190,73,.18);
+    }
+
+    .miniLine{
+      margin-top:8px;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .unlockLine{
+      margin-top:6px;
+      font-size:13px;
+      color: var(--pink);
+      font-weight:800;
+    }
+
+    .confettiHeart{
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 9999;
+      pointer-events: none;
+      animation: confettiFly 1.1s ease-out forwards;
+      will-change: transform, opacity;
+    }
+    @keyframes confettiFly{
+      0%{ transform: translate(-50%, -50%) translate(0,0) scale(.6) rotate(0deg); opacity:0; }
+      15%{ opacity:1; }
+      100%{ transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1.25) rotate(var(--r)); opacity:0; }
+    }
+
+    .modal{
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(255,247,251,.76);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+    }
+    .modal.open{ display:flex; }
+    .modalCard{
+      width: min(960px, 94vw);
+      max-height: 86vh;
+      overflow: auto;
+      background:#fff;
+      border:1px solid var(--stroke2);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+    .modalHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:6px;
+    }
+    .modalHead h3{
+      margin:0;
+      font-size:18px;
+    }
+    .modalGallery{
+      grid-template-columns: repeat(5, 1fr);
+      margin-top:8px;
+    }
+    .modalThumb{
+      position:relative;
+      aspect-ratio:1/1;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid var(--stroke2);
+      background:#fff7fb;
+      box-shadow: 0 10px 24px rgba(255,95,162,.10);
+    }
+    .modalThumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .modalThumb span{
+      position:absolute;
+      left:8px;
+      bottom:8px;
+      font-size:11px;
+      color:#fff;
+      background: rgba(255,95,162,.78);
+      border:1px solid rgba(255,95,162,.35);
+      padding:4px 8px;
+      border-radius:999px;
+      font-weight:700;
+    }
+    .modalEmpty{
+      padding:20px;
+      border:1px dashed rgba(255,95,162,.22);
+      border-radius:14px;
+      text-align:center;
+      color:var(--muted);
+      background:#fff7fb;
+    }
+
+    @media (max-width: 760px){
+      .modalGallery{ grid-template-columns: repeat(3, 1fr); }
+    }
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="topRow">
+        <div>
+          <h1>Пятнашки Миён ♡</h1>
+        </div>
+
+        <div class="pills">
+          
+          <div class="pill">Ходы: <strong id="moves">0</strong></div>
+          <div class="pill">Время: <strong id="time">00:00</strong></div>
+          <div class="pill">Рекорд: <strong id="best">—</strong></div>
+          <div class="pill">Сетка:
+            <strong>
+              <select id="size">
+                <option value="3">3×3</option>
+                <option value="4" selected>4×4</option>
+                <option value="5">5×5</option>
+              </select>
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="shuffle">Перемешать</button>
+        <button class="ghost" id="toggleNums">Подсказка</button>
+        <button class="ghost" id="dailyBtn">Daily Miyeon ♡</button>
+        <button class="ghost" id="randomBtn">Случайная ♡</button>
+        <button class="ghost" id="galleryBtn">Моя галерея ♡</button>
+      </div>
+    </div>
+
+    <div class="mainRow">
+      <div class="leftCol">
+        <div class="boardWrap">
+          <div class="boardFrame">
+            <div id="board" class="board" aria-label="Пятнашки"></div>
+          </div>
+</div>
+      </div>
+
+      <aside class="rightCol card levelsCard" aria-label="Выбор уровня">
+        <h3>Выбор уровня</h3>
+        <p class="sub">Нажми на любую картинку, чтобы начать ♡</p>
+        <div class="gallery" id="gallery" aria-label="Уровни"></div>
+      </aside>
+    </div>
+
+    <div id="confetti" aria-hidden="true"></div>
+    <div id="galleryModal" class="modal" aria-hidden="true">
+      <div class="modalCard">
+        <div class="modalHead">
+          <h3>Моя галерея ♡</h3>
+          <button id="closeGallery" class="ghost">Закрыть</button>
+        </div>
+        <p class="sub" id="galleryStats">Здесь будут все пройденные картинки ♡</p>
+        <div class="gallery modalGallery" id="solvedGallery"></div>
+      </div>
+    </div>
+    <div id="debug"></div>
+  </div>
+
+<script>
+(() => {
+  const debugEl = document.getElementById('debug');
+  const boardEl = document.getElementById('board');
+  const galleryEl = document.getElementById('gallery');
+  const sizeSel = document.getElementById('size');
+  const shuffleBtn = document.getElementById('shuffle');
+  const toggleNumsBtn = document.getElementById('toggleNums');
+  const dailyBtn = document.getElementById('dailyBtn');
+  const randomBtn = document.getElementById('randomBtn');
+  const galleryBtn = document.getElementById('galleryBtn');
+  const confettiEl = document.getElementById('confetti');
+  const galleryModal = document.getElementById('galleryModal');
+  const solvedGalleryEl = document.getElementById('solvedGallery');
+  const galleryStatsEl = document.getElementById('galleryStats');
+  const closeGalleryBtn = document.getElementById('closeGallery');
+  const boardFrameEl = document.querySelector('.boardFrame');
+  const rightColEl = document.querySelector('.rightCol');
+  const movesEl = document.getElementById('moves');
+  const timeEl = document.getElementById('time');
+  const bestEl = document.getElementById('best');
+
+  const LEVELS = Array.from({length: 20}, (_,i) => String(i+1).padStart(2,'0'));
+  const FILE_BASE = (id) => `img/miyeon_${id}`;
+
+  // Daily puzzles live in img/daily/ and are NOT shown in the level gallery
+  // Put files like: img/daily/daily_01.jpg ... img/daily/daily_07.jpg (jpg/png/webp)
+  // Daily is the same for everyone: it depends only on the date
+  const DAILY_LEVELS = Array.from({length: 7}, (_,i) => String(i+1).padStart(2,'0'));
+  const DAILY_BASE = (id) => `img/daily/daily_${id}`;
+
+  const TRY_EXT = ['.jpg','.jpeg','.png','.webp'];
+
+  const STORAGE_KEY = 'miyeon_state_v1';
+  const BEST_KEY = 'miyeon_best_v1';
+  const SOLVED_KEY = 'miyeon_solved_v1';
+  const STREAK_KEY = 'miyeon_daily_streak_v1';
+  const MOVES_BEST_KEY = 'miyeon_moves_best_v1';
+
+  const loadState = () => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; } };
+  const saveState = (s) => localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  const loadBest = () => { try { return JSON.parse(localStorage.getItem(BEST_KEY) || '{}'); } catch { return {}; } };
+  const saveBest = (b) => localStorage.setItem(BEST_KEY, JSON.stringify(b));
+  const loadSolved = () => { try { return JSON.parse(localStorage.getItem(SOLVED_KEY) || '[]'); } catch { return []; } };
+  const saveSolved = (arr) => localStorage.setItem(SOLVED_KEY, JSON.stringify(arr));
+  const loadStreak = () => { try { return JSON.parse(localStorage.getItem(STREAK_KEY) || '{}'); } catch { return {}; } };
+  const saveStreak = (obj) => localStorage.setItem(STREAK_KEY, JSON.stringify(obj));
+  const loadMovesBest = () => { try { return JSON.parse(localStorage.getItem(MOVES_BEST_KEY) || '{}'); } catch { return {}; } };
+  const saveMovesBest = (obj) => localStorage.setItem(MOVES_BEST_KEY, JSON.stringify(obj));
+  const isLevelSolved = (id) => loadSolved().includes(id);
+  const markLevelSolved = (id) => {
+    const solved = loadSolved();
+    const isNew = !solved.includes(id);
+    if(isNew){
+      solved.push(id);
+      saveSolved(solved);
+    }
+    return isNew;
+  };
+
+  const showDebug = (msg) => { debugEl.style.display = 'block'; debugEl.textContent = msg; };
+  const clearDebug = () => { debugEl.style.display = 'none'; debugEl.textContent = ''; };
+
+  window.addEventListener('error', (e) => {
+    showDebug((e && e.message) ? e.message : String(e));
+  });
+
+  const todayKey = () => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}${m}${day}`;
+  };
+
+  // Daily repeats in a simple 7-day cycle for everyone.
+  // dayIndex = (daysSinceEpoch % 7) + 1 -> daily_01 ... daily_07, then repeats.
+  const dailyCycleIndex = () => {
+    const now = new Date();
+    const utc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const daysSinceEpoch = Math.floor(utc / 86400000);
+    return (daysSinceEpoch % DAILY_LEVELS.length) + 1;
+  };
+
+  const pickDailyId = () => {
+    const key = todayKey();
+    const idx1 = dailyCycleIndex(); // 1..DAILY_LEVELS.length
+    const id = String(idx1).padStart(2,'0');
+    return { key, id };
+  };
+
+  const fmtTime = (sec) => {
+    const m = Math.floor(sec/60);
+    const s = sec % 60;
+    return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  };
+
+  const fmtMinSec = (sec) => fmtTime(sec);
+
+  const updateModeDecor = () => {
+    boardEl.classList.toggle('dailyMode', mode === 'daily');
+    boardFrameEl.classList.toggle('dailyMode', mode === 'daily');
+    rightColEl.classList.toggle('dailyMode', mode === 'daily');
+  };
+
+  const getBestMovesKey = () => {
+    return (mode === 'daily')
+      ? `daily:${todayKey()}:${dailyId || 'x'}`
+      : `level:${current}`;
+  };
+
+  const playMoveSound = () => {
+    try{
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return;
+      if(!window.__miyeonAudioCtx) window.__miyeonAudioCtx = new Ctx();
+      const ctx = window.__miyeonAudioCtx;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(660, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(420, ctx.currentTime + 0.05);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.065);
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start();
+      o.stop(ctx.currentTime + 0.07);
+    }catch(e){}
+  };
+
+  const launchConfettiHearts = () => {
+    const hearts = ['♡','♥','💗','💖'];
+    for(let i=0;i<18;i++){
+      const el = document.createElement('div');
+      el.className = 'confettiHeart';
+      el.textContent = hearts[i % hearts.length];
+      el.style.setProperty('--x', `${Math.round((Math.random() - 0.5) * 360)}px`);
+      el.style.setProperty('--y', `${Math.round((Math.random() - 0.7) * 300)}px`);
+      el.style.setProperty('--r', `${Math.round((Math.random() - 0.5) * 240)}deg`);
+      el.style.fontSize = `${16 + Math.round(Math.random() * 14)}px`;
+      confettiEl.appendChild(el);
+      el.addEventListener('animationend', () => el.remove(), { once:true });
+    }
+  };
+
+  const getRatingByTime = (seconds) => {
+    const limits = {
+      3: { S: 55, A: 95, B: 145 },
+      4: { S: 130, A: 210, B: 300 },
+      5: { S: 260, A: 390, B: 560 },
+    };
+    const t = limits[N] || limits[4];
+    if(seconds <= t.S) return 'S';
+    if(seconds <= t.A) return 'A';
+    if(seconds <= t.B) return 'B';
+    return 'C';
+  };
+
+  const updateDailyStreak = () => {
+    const info = loadStreak();
+    const key = todayKey();
+    const prev = info.lastKey || null;
+    const asDate = (k) => new Date(Number(k.slice(0,4)), Number(k.slice(4,6)) - 1, Number(k.slice(6,8)));
+    let streak = Number(info.streak || 0);
+    if(prev === key) return streak || 1;
+    if(prev){
+      const diff = Math.round((asDate(key) - asDate(prev)) / 86400000);
+      if(diff === 1) streak += 1;
+      else streak = 1;
+    } else {
+      streak = 1;
+    }
+    info.lastKey = key;
+    info.streak = streak;
+    saveStreak(info);
+    return streak;
+  };
+
+  const getCountdownToNextDaily = () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setHours(24,0,0,0);
+    return Math.max(0, Math.floor((tomorrow - now)/1000));
+  };
+
+  const formatHMS = (s) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  };
+
+  const openGallery = async () => {
+    const solved = loadSolved();
+    solvedGalleryEl.innerHTML = '';
+    galleryStatsEl.textContent = solved.length
+      ? `Открыто картинок: ${solved.length}/${LEVELS.length}`
+      : 'Пока здесь пусто — пройди первый уровень ♡';
+
+    if(!solved.length){
+      solvedGalleryEl.innerHTML = '<div class="modalEmpty" style="grid-column:1/-1">Пока здесь нет открытых картинок ♡</div>';
+      galleryModal.classList.add('open');
+      galleryModal.setAttribute('aria-hidden', 'false');
+      return;
+    }
+
+    for(const id of LEVELS){
+      if(!solved.includes(id)) continue;
+      try{
+        const url = await resolveImageUrl(FILE_BASE(id));
+        const item = document.createElement('div');
+        item.className = 'modalThumb';
+        item.innerHTML = `<img src="${url}" alt="Уровень ${Number(id)}"><span>#${Number(id)}</span>`;
+        solvedGalleryEl.appendChild(item);
+      }catch(e){}
+    }
+
+    galleryModal.classList.add('open');
+    galleryModal.setAttribute('aria-hidden', 'false');
+  };
+
+  const closeGallery = () => {
+    galleryModal.classList.remove('open');
+    galleryModal.setAttribute('aria-hidden', 'true');
+  };
+
+  // Image loader with fallback extensions (NO cache busters so it works with file:// too)
+  const resolveImageUrl = (base) => new Promise((resolve, reject) => {
+    let idx = 0;
+    const tryNext = () => {
+      if(idx >= TRY_EXT.length) return reject(new Error('Не удалось загрузить картинку: ' + base + '(.jpg/.png/.webp)'));
+      const url = base + TRY_EXT[idx++];
+      const img = new Image();
+      img.onload = () => resolve(url);
+      img.onerror = tryNext;
+      img.src = url;
+    };
+    tryNext();
+  });
+
+  let state = loadState();
+  let current = state.current || '01';
+  let mode = 'levels'; // 'levels' or 'daily'
+  let dailyId = null;
+
+  let size = Number(state.size || 4);
+  let timer = null;
+  let t0 = 0;
+  let moves = 0;
+  let showNums = false;
+
+  let N = size;
+  let tiles = [];
+  let imgUrl = null;
+
+  const updateBestDisplay = () => {
+    const best = loadBest();
+    const key = (mode === 'daily')
+      ? `daily:${todayKey()}:${dailyId || 'x'}`
+      : `level:${current}`;
+    const sizeKey = String(N);
+    const ms = (best[key] && best[key][sizeKey]) ? best[key][sizeKey] : null;
+    if(!ms){ bestEl.textContent = '—'; return; }
+    bestEl.textContent = fmtMinSec(Math.floor(ms/1000));
+  };
+
+  const setTimerRunning = (on) => {
+    if(timer){ clearInterval(timer); timer=null; }
+    if(!on) return;
+    t0 = Date.now() - (state.elapsedMs || 0);
+    timer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - t0)/1000);
+      timeEl.textContent = fmtTime(elapsed);
+    }, 250);
+  };
+
+  const resetRunStats = () => {
+    moves = 0;
+    movesEl.textContent = '0';
+    timeEl.textContent = '00:00';
+    state.elapsedMs = 0;
+    setTimerRunning(false);
+  };
+
+  const isSolved = () => {
+    for(let i=0;i<tiles.length-1;i++){
+      if(tiles[i] !== i) return false;
+    }
+    return tiles[tiles.length-1] === -1;
+  };
+
+  const renderBoard = () => {
+    boardEl.classList.remove('solved');
+    boardEl.innerHTML = '';
+    boardEl.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+    boardEl.style.gridTemplateRows = `repeat(${N}, 1fr)`;
+    boardEl.classList.toggle('showNums', showNums);
+
+    for(let i=0;i<tiles.length;i++){
+      const t = tiles[i];
+      const cell = document.createElement('div');
+      cell.className = 'tile' + (t === -1 ? ' empty' : '');
+      cell.dataset.pos = String(i);
+      if(t !== -1){
+        const r = Math.floor(t / N);
+        const c = t % N;
+        cell.style.backgroundImage = `url("${imgUrl}")`;
+        cell.style.backgroundSize = `${N*100}% ${N*100}%`;
+        cell.style.backgroundPosition = `${(c/(N-1))*100}% ${(r/(N-1))*100}%`;
+        const num = document.createElement('div');
+        num.className = 'num';
+        num.textContent = String(t+1);
+        cell.appendChild(num);
+      }
+      boardEl.appendChild(cell);
+    }
+  };
+
+  const shuffle = () => {
+    if(!imgUrl){ return; }
+    const len = N*N;
+    tiles = Array.from({length: len-1}, (_,i)=>i);
+    tiles.push(-1);
+
+    let empty = len-1;
+    const neighbors = (idx) => {
+      const r = Math.floor(idx/N), c = idx%N;
+      const out = [];
+      if(r>0) out.push(idx-N);
+      if(r<N-1) out.push(idx+N);
+      if(c>0) out.push(idx-1);
+      if(c<N-1) out.push(idx+1);
+      return out;
+    };
+
+    let last = -1;
+    const steps = 200 + N*50;
+    for(let k=0;k<steps;k++){
+      const opts = neighbors(empty).filter(x=>x!==last);
+      const pick = opts[Math.floor(Math.random()*opts.length)];
+      [tiles[pick], tiles[empty]] = [tiles[empty], tiles[pick]];
+      last = empty;
+      empty = pick;
+    }
+    if(isSolved()){
+      const opts = neighbors(empty);
+      const pick = opts[0];
+      [tiles[pick], tiles[empty]] = [tiles[empty], tiles[pick]];
+    }
+
+    resetRunStats();
+    renderBoard();
+    updateBestDisplay();
+  };
+
+  const posToRC = (idx) => ({ r: Math.floor(idx/N), c: idx%N });
+  const isAdjacent = (a,b) => {
+    const A = posToRC(a), B = posToRC(b);
+    const dr = Math.abs(A.r - B.r);
+    const dc = Math.abs(A.c - B.c);
+    return (dr + dc) === 1;
+  };
+  const findEmpty = () => tiles.indexOf(-1);
+  const swapPos = (a,b) => { [tiles[a], tiles[b]] = [tiles[b], tiles[a]]; };
+
+  const onMove = () => {
+    moves++;
+    movesEl.textContent = String(moves);
+    playMoveSound();
+    if(!timer){
+      state.elapsedMs = 0;
+      setTimerRunning(true);
+    }
+  };
+
+  const showSolvedImage = (withOverlay = true) => {
+    boardEl.classList.add('solved');
+    boardEl.style.gridTemplateColumns = '1fr';
+    boardEl.style.gridTemplateRows = '1fr';
+    boardEl.innerHTML = '';
+
+    const img = document.createElement('img');
+    img.className = 'solvedImg';
+    img.src = imgUrl;
+    img.alt = 'Готовая картинка';
+    img.style.gridColumn = '1 / -1';
+    img.style.gridRow = '1 / -1';
+    boardEl.appendChild(img);
+
+    if(!withOverlay){
+      // show only the completed image first
+      return;
+    }
+
+    let unlockedNextId = null;
+    let streakValue = null;
+    let newBestMoves = false;
+
+    if(mode === 'levels' && current){
+      markLevelSolved(current);
+
+      const thumbs = document.querySelectorAll('.thumb');
+      thumbs.forEach((thumb, i) => {
+        if(LEVELS[i] === current){
+          thumb.classList.add('unlocking');
+          thumb.classList.remove('locked');
+          thumb.classList.add('newlyUnlocked');
+          setTimeout(() => {
+            thumb.classList.remove('unlocking');
+            thumb.classList.remove('newlyUnlocked');
+          }, 900);
+        }
+      });
+
+      const idxCurrent = LEVELS.indexOf(current);
+      if(idxCurrent >= 0 && idxCurrent < LEVELS.length - 1 && !isLevelSolved(LEVELS[idxCurrent + 1])){
+        unlockedNextId = LEVELS[idxCurrent + 1];
+      }
+    } else if(mode === 'daily'){
+      streakValue = updateDailyStreak();
+    }
+
+    const movesBest = loadMovesBest();
+    const movesKey = getBestMovesKey();
+    const movesSizeKey = String(N);
+    const prevMoves = (movesBest[movesKey] && movesBest[movesKey][movesSizeKey]) ? movesBest[movesKey][movesSizeKey] : null;
+    if(!movesBest[movesKey]) movesBest[movesKey] = {};
+    if(!prevMoves || moves < prevMoves){
+      movesBest[movesKey][movesSizeKey] = moves;
+      saveMovesBest(movesBest);
+      newBestMoves = true;
+    }
+
+    const ms = Number(state.elapsedMs || 0);
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = totalSec % 60;
+    const timeText = `${minutes} минут ${String(seconds).padStart(2,'0')} секунд`;
+
+    const best = loadBest();
+    const key = (mode === 'daily')
+      ? `daily:${todayKey()}:${dailyId || 'x'}`
+      : `level:${current}`;
+    const sizeKey = String(N);
+    const prevBest = (best[key] && best[key][sizeKey]) ? best[key][sizeKey] : null;
+    const isNewBest = (!prevBest) || (ms > 0 && ms < prevBest);
+    if(!best[key]) best[key] = {};
+    if(isNewBest && ms > 0){
+      best[key][sizeKey] = ms;
+      saveBest(best);
+    }
+
+    const bestLine = (best[key] && best[key][sizeKey]) ? `Личный рекорд ${fmtMinSec(Math.floor(best[key][sizeKey]/1000))}` : null;
+    const rating = getRatingByTime(totalSec);
+    const prevBestSec = prevBest ? Math.floor(prevBest / 1000) : null;
+    const diffToBest = prevBestSec && !isNewBest ? Math.max(0, totalSec - prevBestSec) : 0;
+    const recordHint = isNewBest ? 'Ты побил(а) свой рекорд по времени ♡' : (prevBestSec ? `До рекорда не хватило ${fmtMinSec(diffToBest)}` : '');
+    const movesHint = `Лучшие ходы: ${movesBest[movesKey][movesSizeKey]}${newBestMoves ? ' ♡ новый рекорд' : ''}`;
+    const dailyLine = streakValue ? `Daily streak ♡ ${streakValue}` : '';
+
+    const msg = document.createElement('div');
+    msg.className = 'winMsg';
+    msg.innerHTML = `
+      <div class="winTitle">Готово ♡</div>
+      <div class="winText">Уровень ${N}×${N} пройден за ${timeText}</div>
+      <div class="winText2">Рейтинг ${rating} ♡ и ${moves} ходов</div>
+      ${bestLine ? `<div class="bestLine">${bestLine}${isNewBest ? '  ♡ новый рекорд' : ''}</div>` : ''}
+      ${recordHint ? `<div class="miniLine">${recordHint}</div>` : ''}
+      <div class="miniLine">${movesHint}</div>
+      ${dailyLine ? `<div class="unlockLine">${dailyLine}</div>` : ''}
+      <button class="nextBtn">${mode === 'daily' ? 'Новая картинка через ' + formatHMS(getCountdownToNextDaily()) : 'Следующая картинка ♡'}</button>
+      <button class="retryBtn">Перепройти уровень ♡</button>
+    `;
+    boardEl.appendChild(msg);
+
+    
+    const nextBtn = msg.querySelector('.nextBtn');
+    if(mode === 'daily'){
+      nextBtn.disabled = true;
+      nextBtn.style.opacity = "0.78";
+      nextBtn.style.cursor = "default";
+      const timerId = setInterval(() => {
+        if(!document.body.contains(nextBtn)){
+          clearInterval(timerId);
+          return;
+        }
+        nextBtn.textContent = "Новая картинка через " + formatHMS(getCountdownToNextDaily());
+      }, 1000);
+    }
+
+    msg.querySelector('.retryBtn').addEventListener('click', () => {
+      resetRunStats();
+      shuffle();
+    });
+
+    if(!nextBtn.disabled){
+      nextBtn.addEventListener('click', async () => {
+        const idx = LEVELS.indexOf(current);
+        const next = LEVELS[(idx + 1) % LEVELS.length];
+        await pickLevel(next);
+      });
+    }
+
+    launchConfettiHearts();
+    updateBestDisplay();
+  };
+
+  boardEl.addEventListener('click', (e) => {
+    clearDebug();
+    const el = e.target.closest('.tile');
+    if(!el) return;
+    const pos = Number(el.dataset.pos);
+    const empty = findEmpty();
+    if(pos === empty) return;
+    if(!isAdjacent(pos, empty)) return;
+
+    swapPos(pos, empty);
+    onMove();
+    renderBoard();
+
+    if(isSolved()){
+      if(timer){
+        state.elapsedMs = Date.now() - t0;
+        setTimerRunning(false);
+      }
+      saveState(state);
+      // show the completed image instantly, then show the message a bit later
+      showSolvedImage(false);
+      setTimeout(() => {
+        showSolvedImage(true);
+      }, 900);
+    }
+  });
+
+  const buildGallery = async () => {
+    galleryEl.innerHTML = '';
+
+    // Create buttons immediately so the block never looks empty
+    const buttons = LEVELS.map((id, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'thumb';
+      btn.setAttribute('aria-label', 'Уровень ' + (i+1));
+
+      const label = document.createElement('span');
+      label.textContent = '#' + (i+1);
+      btn.appendChild(label);
+
+      btn.addEventListener('click', async () => { await pickLevel(id); });
+      galleryEl.appendChild(btn);
+      return {btn, label, id, i};
+    });
+
+    // Load thumbnails async (if missing, button still stays visible)
+    for(const item of buttons){
+      try{
+        const url = await resolveImageUrl(FILE_BASE(item.id));
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'Уровень ' + (item.i+1);
+        item.btn.insertBefore(img, item.label);
+      }catch(e){}
+    }
+
+    // active highlight + blur for unpassed levels
+    [...galleryEl.querySelectorAll('.thumb')].forEach((b, idx) => {
+      const id = LEVELS[idx];
+      b.classList.toggle('active', mode === 'levels' && id === current);
+      b.classList.toggle('locked', !isLevelSolved(id));
+    });
+  };
+
+  const pickLevel = async (id) => {
+    clearDebug();
+    try{
+      mode = 'levels';
+      dailyId = null;
+
+      current = id;
+      state.current = id;
+      saveState(state);
+
+      
+      imgUrl = await resolveImageUrl(FILE_BASE(id));
+
+      updateModeDecor();
+      N = Number(sizeSel.value);
+      shuffle();
+      await buildGallery();
+      updateBestDisplay();
+    }catch(err){
+      showDebug(String(err.message || err));
+    }
+  };
+
+  const pickDaily = async () => {
+    clearDebug();
+    try{
+      mode = 'daily';
+      const picked = pickDailyId();
+      dailyId = picked.id;
+
+      
+      imgUrl = await resolveImageUrl(DAILY_BASE(dailyId));
+
+      updateModeDecor();
+      N = Number(sizeSel.value);
+      shuffle();
+      await buildGallery();
+      updateBestDisplay();
+    }catch(err){
+      showDebug(String(err.message || err));
+    }
+  };
+
+  shuffleBtn.addEventListener('click', () => {
+    clearDebug();
+    if(!imgUrl){
+      showDebug("Сначала выбери уровень справа или нажми Daily Miyeon ♡");
+      return;
+    }
+    shuffle();
+  });
+
+  toggleNumsBtn.addEventListener('click', () => {
+    showNums = !showNums;
+    boardEl.classList.toggle('showNums', showNums);
+  });
+
+  dailyBtn.addEventListener('click', async () => {
+    await pickDaily();
+  });
+
+  randomBtn.addEventListener('click', async () => {
+    const id = LEVELS[Math.floor(Math.random() * LEVELS.length)];
+    await pickLevel(id);
+  });
+
+  galleryBtn.addEventListener('click', async () => {
+    await openGallery();
+  });
+
+  closeGalleryBtn.addEventListener('click', closeGallery);
+  galleryModal.addEventListener('click', (e) => {
+    if(e.target === galleryModal) closeGallery();
+  });
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && galleryModal.classList.contains('open')) closeGallery();
+  });
+
+  sizeSel.addEventListener('change', async () => {
+    size = Number(sizeSel.value);
+    state.size = size;
+    saveState(state);
+    if(!imgUrl) return;
+    N = size;
+    shuffle();
+    renderBoard();
+    updateBestDisplay();
+  });
+
+  (async () => {
+    try{
+      if([3,4,5].includes(size)){
+        sizeSel.value = String(size);
+      }
+      updateModeDecor();
+      await buildGallery();
+      await pickLevel(current);
+      updateBestDisplay();
+    }catch(err){
+      showDebug(String(err.message || err));
+    }
+  })();
+})();
+</script>
+</body>
+</html>
